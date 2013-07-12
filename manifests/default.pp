@@ -219,40 +219,19 @@ exec {
 		creates => "/u01/app/oraInventory",
 		require => Exec["oracle_disk2"];
 	"orainstRoot":
-		command => "/u01/app/oraInventory/orainstRoot.sh",
+		command => "/u01/app/oraInventory/orainstRoot.sh && touch /u01/app/oraInventory/orainstRoot",
+		creates => "/u01/app/oraInventory/orainstRoot",
 		require => Exec["oracle_runInstaller"];
 	"dbhome_1_root":
-		command => "/u01/app/oracle/product/11.2.0/dbhome_1/root.sh",
+		command => "/u01/app/oracle/product/11.2.0/dbhome_1/root.sh && touch /u01/app/oraInventory/dbhome_1_root",
+		creates => "/u01/app/oraInventory/dbhome_1_root",
 		require => Exec["orainstRoot"];
 }
-
 
 file { "/etc/init.d/dbora":
 	owner => 0, group => 0, mode => 0700, 
 	require => Exec["dbhome_1_root"],
-	content => '#
-# chkconfig: 35 99 10
-# description: Start and stop the Oracle database, listener and DB Control
-#
-ORA_HOME=/u01/app/oracle/product/11.2.0/dbhome_1
-ORA_OWNER=oracle
-if [ ! -f $ORA_HOME/bin/dbstart ]
-then
-  echo "Oracle startup: cannot start"
-  exit
-fi
-case "$1" in
- \'start\') # Start the Oracle databases and listeners
-  su - $ORA_OWNER -c "$ORA_HOME/bin/dbstart $ORA_HOME"
-  su - $ORA_OWNER -c "export ORACLE_SID=dev11ee; $ORA_HOME/bin/emctl start dbconsole"
-  touch /var/lock/subsys/dbora
-  ;;
- \'stop\')  # Stop the Oracle databases and listeners
-  su - $ORA_OWNER -c "export ORACLE_SID=dev11ee; $ORA_HOME/bin/emctl stop dbconsole"
-  su - $ORA_OWNER -c "$ORA_HOME/bin/dbshut $ORA_HOME"
-  rm -f /var/lock/subsys/dbora
-  ;;
-esac'
+	source => "puppet:///modules/default/etc/init.d/dbora.sh"
 }
 
 exec {"chkconfig dbora":
@@ -260,4 +239,7 @@ exec {"chkconfig dbora":
 	require => File["/etc/init.d/dbora"]
 }
 
-
+service { "dbora": 
+	ensure => "running",
+	require => Exec["chkconfig dbora"]
+}
