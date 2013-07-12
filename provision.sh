@@ -18,4 +18,3 @@ echo "127.0.0.1     oracle oracle.vagrantup.com" >> /etc/hosts
 
 date >> /etc/vagrant_provisioned_at
 touch /var/vagrant_provision
-
