@@ -239,7 +239,13 @@ exec {"chkconfig dbora":
 	require => File["/etc/init.d/dbora"]
 }
 
+exec {"oratab":
+	command   => 'sed -i "s/dbhome_1:N/dbhome_1:Y/g" /etc/oratab',
+	unless    => 'grep -q "dbhome_1:Y" /etc/oratab',
+	require   => Exec["chkconfig dbora"]
+}
+
 service { "dbora": 
 	ensure => "running",
-	require => Exec["chkconfig dbora"]
+	require => Exec["oratab"]
 }

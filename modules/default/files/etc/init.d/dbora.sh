@@ -10,6 +10,7 @@
 
 ORA_HOME=/u01/app/oracle/product/11.2.0/dbhome_1
 ORA_OWNER=oracle
+ORACLE_UNQNAME=orcl
 
 if [ ! -f $ORA_HOME/bin/dbstart ]
 then
@@ -24,14 +25,14 @@ case "$1" in
         # will not prompt the user for any values
         su - $ORA_OWNER -c "$ORA_HOME/bin/lsnrctl start"
         su - $ORA_OWNER -c "$ORA_HOME/bin/dbstart $ORA_HOME"
-        su - $ORA_OWNER -c "export ORACLE_SID=ORCL; $ORA_HOME/bin/emctl start dbconsole"
+        su - $ORA_OWNER -c "export ORACLE_SID=$ORACLE_UNQNAME; export ORACLE_UNQNAME=$ORACLE_UNQNAME; $ORA_HOME/bin/emctl start dbconsole"
         touch /var/lock/subsys/dbora
         ;;
     'stop')
         # Stop the Oracle databases:
         # The following command assumes that the oracle login 
         # will not prompt the user for any values
-        su - $ORA_OWNER -c "export ORACLE_SID=ORCL; $ORA_HOME/bin/emctl stop dbconsole"
+        su - $ORA_OWNER -c "export ORACLE_SID=$ORACLE_UNQNAME; export ORACLE_UNQNAME=$ORACLE_UNQNAME; $ORA_HOME/bin/emctl stop dbconsole"
         su - $ORA_OWNER -c "$ORA_HOME/bin/dbshut $ORA_HOME"
         su - $ORA_OWNER -c "$ORA_HOME/bin/lsnrctl stop"
         rm -f /var/lock/subsys/dbora
